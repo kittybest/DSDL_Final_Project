@@ -1,6 +1,7 @@
 package com.example.zhanyuzhen.assistnet;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,9 +34,12 @@ public class Login extends AppCompatActivity {
     private String str_AccountInfo = new String();
     private final int ClientPort = 8765;
     private final static String address = "10.5.2.56";
-    private String reg_status = new String();
+    private String reg_status;
+    private String login_status;
     Thread thread;
-    JSONObject AccountInfo;
+    private JSONObject AccountInfo = new JSONObject();
+    Intent intent = new Intent();
+    Context context;
 
 
     @Override
@@ -45,21 +49,17 @@ public class Login extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         //create account
         Button create_account = (Button)findViewById(R.id.CREATE_ACCOUNT);
         create_account.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
                 register();
-                if (reg_status.equals("Register_Success")) {
-                    login(Account);
-                } else if (reg_status.equals("Register_SameAccount")) {
-                    Toast.makeText(getApplicationContext(), "已有此帳號 請重新申請", Toast.LENGTH_SHORT);
-                } else {
-                    Toast.makeText(getApplicationContext(), "錯誤 請再試一次", Toast.LENGTH_SHORT);
-                }
             }
         });
+
+        context = this;
 
         Button log_in = (Button)findViewById(R.id.LOG_IN);
         log_in.setOnClickListener(new Button.OnClickListener() {
@@ -73,11 +73,44 @@ public class Login extends AppCompatActivity {
                 Password = new String();
                 Password = PASSWORD.getText().toString();
 
-                thread =new Thread(Login);
-                thread.start();
+                intent = new Intent(context, bg_thread.class);
+                Bundle bundle = new Bundle();
+                bundle.putInt("request", 0);
+                bundle.putString("Account", Account);
+                bundle.putString("Password", Password);
+
+                startActivityForResult(intent, 0);
             }
         });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        switch(requestCode){
+            case 0://login
+                login_status = data.getExtras().getString("login_status");
+                if(login_status.equals("LogIn_Success")){
+                    login(Account);
+                }
+                else if(login_status.equals("LogIn_WrongPassword")){
+                    Toast.makeText(getApplicationContext(),"密碼錯誤",Toast.LENGTH_SHORT);
+                }
+                else if(login_status.equals("Login_NoAccount")){
+                    Toast.makeText(getApplicationContext(),"無此帳號",Toast.LENGTH_SHORT);
+                }
+                break;
+            case 1://register
+                reg_status = data.getExtras().getString("reg_status");
+                if (reg_status.equals("Register_Success")) {
+                    login(Account);
+                } else if (reg_status.equals("Register_SameAccount")) {
+                    Toast.makeText(getApplicationContext(), "已有此帳號 請重新申請", Toast.LENGTH_SHORT);
+                } else {
+                    Toast.makeText(getApplicationContext(), "錯誤 請再試一次", Toast.LENGTH_SHORT);
+                }
+                break;
+        }
     }
 
     private void register(){
@@ -108,15 +141,15 @@ public class Login extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         System.out.println("AccountInfo JSON: " + AccountInfo);
-                        str_AccountInfo = new String();
-                        str_AccountInfo = AccountInfo.toString();
-                        System.out.println("AccountInfo String: " + str_AccountInfo);
-                        //Toast.makeText(Login.this,"註冊成功",Toast.LENGTH_LONG).show();
                     }
                 })
                 .show();
-        thread = new Thread(Register);
-        thread.start();
+        intent = new Intent(this, bg_thread.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("request", 1);
+        bundle.putString("AccountInfo", AccountInfo.toString());
+        intent.putExtras(bundle);
+        startActivityForResult(intent, 1);
     }
     private void login(String UserID){
         Intent intent = new Intent();
@@ -127,10 +160,11 @@ public class Login extends AppCompatActivity {
         startActivity(intent);
         Login.this.finish();
     }
-    private Runnable Register = new Runnable() {
+    /*private Runnable Register = new Runnable() {
         @Override
         public void run() {
             //connect to Server
+            /*System.out.println("in runnable, AccountInfo JSON: " + AccountInfo);
             socket = new Socket();
             InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
             try{
@@ -150,6 +184,7 @@ public class Login extends AppCompatActivity {
             }
             try {
                 outputStream.writeUTF("Register");
+                str_AccountInfo = AccountInfo.toString();
                 System.out.println("Before send, AccountInfo String: " + str_AccountInfo);
                 outputStream.writeUTF(str_AccountInfo);
             } catch (IOException e) {
@@ -157,14 +192,23 @@ public class Login extends AppCompatActivity {
             }
             try {
                 reg_status = inputStream.readUTF();
+                System.out.println("reg_status: " + reg_status);
             } catch (IOException e) {
                 e.printStackTrace();
                 reg_status = new String();
                 reg_status = "Register_Fail";
             }
+           /* try {
+                socket.close();
+                inputStream.close();
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("end of run");
         }
-    };
-    private Runnable Login = new Runnable() {
+    };*/
+    /*private Runnable Login = new Runnable() {
         @Override
         public void run() {
 
@@ -205,6 +249,6 @@ public class Login extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-    };
+    };*/
 
 }

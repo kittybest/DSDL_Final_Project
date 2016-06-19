@@ -4,4 +4,5 @@
     <string name="title_activity_add_request">AddRequest</string>
     <string name="title_activity_list_request">ListRequest</string>
     <string name="title_activity_login">Login</string>
+    <string name="title_activity_bg_thread">bg_thread</string>
 </resources>

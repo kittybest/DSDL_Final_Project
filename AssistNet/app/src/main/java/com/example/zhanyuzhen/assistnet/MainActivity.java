@@ -48,8 +48,9 @@ public class MainActivity extends AppCompatActivity {
 
     //requests
     int Login = 0;
-    int Load = 1;
-    int add = 2;
+    int Register = 1;
+    int Load = 2;
+    int add = 3;
     int Bye = 10;
 
     //protocol
@@ -58,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        intent = getIntent();
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -72,10 +76,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RequestQueue.addRequest(Load);
-        //(new Server()).start();
-        thread = new Thread(client_request);
-        thread.start();
+        //RequestQueue.addRequest(Load);
+        loadRequest();
+        //thread = new Thread(client_request);
+        //thread.start();
 
     }
 
@@ -115,8 +119,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        switch(resultCode){
+        switch(requestCode){
             case 2:
+                list = (ArrayList<JSONObject>)data.getExtras().getSerializable("list");
+                mainList = (ListView) findViewById(R.id.main_list);
+                MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
+                mainList.setAdapter(adapter);
+                break;
+            case 3:
                 try {
                     json = new JSONObject(data.getExtras().getString("json"));
                 } catch (JSONException e) {
@@ -227,16 +237,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void addRequest(){
-        Intent intent = new Intent(this, AddRequest.class);
+        intent = new Intent(this, AddRequest.class);
         Bundle bundle = new Bundle();
         bundle.putString("author", name);
-        //bundle.putSerializable("rqueue", rqueue);
         intent.putExtras(bundle);
         startActivityForResult(intent, add);
-
-       // RequestQueue.addRequest(add);
-       // RequestQueue.addRequest(Load);
     }
 
-
+    public void loadRequest(){
+        intent = new Intent(this, bg_thread.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("request", Load);
+        intent.putExtras(bundle);
+        startActivityForResult(intent, Load);
+    }
 }
