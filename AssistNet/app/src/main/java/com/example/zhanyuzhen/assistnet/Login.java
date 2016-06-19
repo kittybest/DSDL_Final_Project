@@ -102,6 +102,7 @@ public class Login extends AppCompatActivity {
                 break;
             case 1://register
                 reg_status = data.getExtras().getString("reg_status");
+                System.out.println("req_status : " + reg_status);
                 if (reg_status.equals("Register_Success")) {
                     login(Account);
                 } else if (reg_status.equals("Register_SameAccount")) {
@@ -141,15 +142,16 @@ public class Login extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         System.out.println("AccountInfo JSON: " + AccountInfo);
+                        intent = new Intent(context, bg_thread.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("request", 1);
+                        bundle.putString("AccountInfo", AccountInfo.toString());
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 1);
                     }
                 })
                 .show();
-        intent = new Intent(this, bg_thread.class);
-        Bundle bundle = new Bundle();
-        bundle.putInt("request", 1);
-        bundle.putString("AccountInfo", AccountInfo.toString());
-        intent.putExtras(bundle);
-        startActivityForResult(intent, 1);
+
     }
     private void login(String UserID){
         Intent intent = new Intent();

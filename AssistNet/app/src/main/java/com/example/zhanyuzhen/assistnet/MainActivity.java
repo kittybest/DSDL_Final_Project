@@ -60,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        intent = getIntent();
-
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -76,11 +74,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //RequestQueue.addRequest(Load);
-        loadRequest();
-        //thread = new Thread(client_request);
-        //thread.start();
-
+        //loadRequest();
     }
 
     @Override

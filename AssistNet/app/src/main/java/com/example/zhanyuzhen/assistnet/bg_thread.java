@@ -45,44 +45,10 @@ public class bg_thread extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         intent = getIntent();
-        request = intent.getExtras().getInt("request");
-        switch(request){
-            case 0:
-                Account = intent.getExtras().getString("Account");
-                Password = intent.getExtras().getString("Password");
-                thread = new Thread(login);
-                thread.start();
-                bundle = new Bundle();
-                bundle.putString("login_status", input);
-                intent.putExtras(bundle);
-                setResult(0, intent);
-                break;
-            case 1:
-                try {
-                    json = new JSONObject(intent.getExtras().getString("AccountInfo"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                thread = new Thread(register);
-                thread.start();
-                bundle = new Bundle();
-                bundle.putString("reg_status", input);
-                intent.putExtras(bundle);
-                setResult(1, intent);
-                this.finish();
-                break;
-            case 2:
-                thread = new Thread(load);
-                thread.start();
-                bundle = new Bundle();
-                bundle.putSerializable("list", list);
-                intent.putExtras(bundle);
-                setResult(2, intent);
-                this.finish();
-                break;
-        }
+        thread = new Thread(client_request);
+        thread.start();
+
     }
 
 
@@ -130,26 +96,7 @@ public class bg_thread extends AppCompatActivity {
         }
     };
 
-    private Runnable login = new Runnable() {
-        @Override
-        public void run() {
-            socket = new Socket();
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
-            try{
-                socket.connect(inetSocketAddress, 20000);
-                System.out.println("Socket success!");
-            } catch(IOException e){
-                System.out.println("Socket Fault! from client");
-                System.out.println("IOException: " + e.toString());
-            }
-            //initialize input and output stream
-            try {
-                inputStream = new DataInputStream(socket.getInputStream());
-                outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                System.out.println("client I/O Fault!");
-                System.out.println("IOException: " + e.toString());
-            }
+    public String login(String Account, String Password){
             //request data list
             try {
                 outputStream.writeUTF("LogIn");
@@ -160,14 +107,32 @@ public class bg_thread extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    };
+            return input;
+    }
 
-    private Runnable register = new Runnable() {
+    public String register(JSONObject jsonObject){
+            //connect to Server
+            System.out.println("in runnable, AccountInfo JSON: " + jsonObject);
+            try {
+                outputStream.writeUTF("Register");
+                outputStream.writeUTF(jsonObject.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                input = inputStream.readUTF();
+                System.out.println("reg_status: " + input);
+            } catch (IOException e) {
+                e.printStackTrace();
+                input = "Register_Fail";
+            }
+            //System.out.println("end of run");
+        return input;
+    }
+
+    private Runnable client_request = new Runnable() {
         @Override
         public void run() {
-            //connect to Server
-            System.out.println("in runnable, AccountInfo JSON: " + json);
             socket = new Socket();
             InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
             try{
@@ -185,20 +150,40 @@ public class bg_thread extends AppCompatActivity {
                 System.out.println("client I/O Fault!");
                 System.out.println("IOException: " + e.toString());
             }
-            try {
-                outputStream.writeUTF("Register");
-                outputStream.writeUTF(json.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            request = intent.getExtras().getInt("request");
+            switch(request){
+                case 0:
+                    Account = intent.getExtras().getString("Account");
+                    Password = intent.getExtras().getString("Password");
+                    String login_status = login(Account, Password);
+                    bundle = new Bundle();
+                    bundle.putString("login_status", login_status);
+                    intent.putExtras(bundle);
+                    setResult(0, intent);
+                    finish();
+                    break;
+                case 1:
+                    try {
+                        json = new JSONObject(intent.getExtras().getString("AccountInfo"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    String reg_status = register(json);
+                    bundle = new Bundle();
+                    System.out.println("reg_status before send: " + input);
+                    bundle.putString("reg_status", input);
+                    intent.putExtras(bundle);
+                    setResult(1, intent);
+                    finish();
+                    break;
+                case 2:
+                    bundle = new Bundle();
+                    bundle.putSerializable("list", list);
+                    intent.putExtras(bundle);
+                    setResult(2, intent);
+                    break;
             }
-            try {
-                input = inputStream.readUTF();
-                System.out.println("reg_status: " + input);
-            } catch (IOException e) {
-                e.printStackTrace();
-                input = "Register_Fail";
-            }
-            System.out.println("end of run");
         }
     };
 
