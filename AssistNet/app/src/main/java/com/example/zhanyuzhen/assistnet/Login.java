@@ -78,7 +78,7 @@ public class Login extends AppCompatActivity {
                 bundle.putInt("request", 0);
                 bundle.putString("Account", Account);
                 bundle.putString("Password", Password);
-
+                intent.putExtras(bundle);
                 startActivityForResult(intent, 0);
             }
         });
@@ -87,17 +87,18 @@ public class Login extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
         switch(requestCode){
             case 0://login
                 login_status = data.getExtras().getString("login_status");
                 if(login_status.equals("LogIn_Success")){
                     login(Account);
                 }
-                else if(login_status.equals("LogIn_WrongPassword")){
-                    Toast.makeText(getApplicationContext(),"密碼錯誤",Toast.LENGTH_SHORT);
+                else if(login_status.equals("LogIn_WrongPassWord")){
+                    Toast.makeText(getApplicationContext(),"密碼錯誤",Toast.LENGTH_SHORT).show();
                 }
-                else if(login_status.equals("Login_NoAccount")){
-                    Toast.makeText(getApplicationContext(),"無此帳號",Toast.LENGTH_SHORT);
+                else if(login_status.equals("LogIn_NoAccount")){
+                    Toast.makeText(getApplicationContext(),"無此帳號",Toast.LENGTH_SHORT).show();
                 }
                 break;
             case 1://register
@@ -106,9 +107,9 @@ public class Login extends AppCompatActivity {
                 if (reg_status.equals("Register_Success")) {
                     login(Account);
                 } else if (reg_status.equals("Register_SameAccount")) {
-                    Toast.makeText(getApplicationContext(), "已有此帳號 請重新申請", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "已有此帳號 請重新申請", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getApplicationContext(), "錯誤 請再試一次", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "錯誤 請再試一次", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

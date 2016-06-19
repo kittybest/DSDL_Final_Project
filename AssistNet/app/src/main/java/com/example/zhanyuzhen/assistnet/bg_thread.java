@@ -29,14 +29,14 @@ public class bg_thread extends AppCompatActivity {
     private Socket socket;
     private String input;
     private JSONObject json;
-    ArrayList<JSONObject> list = new ArrayList<JSONObject>();
+    ArrayList<String> list = new ArrayList<String>();
     Intent intent = new Intent();
     Bundle bundle;
     Thread thread;
     int request;
    // String reg_status;
-    String Account;
-    String Password;
+    String Account = "";
+    String Password = "";
     /*int Login = 0;
     int Register = 1;
     int Load = 2;
@@ -52,7 +52,7 @@ public class bg_thread extends AppCompatActivity {
     }
 
 
-    private Runnable load = new Runnable(){
+   /* private Runnable load = new Runnable(){
         @Override
         public void run(){
             socket = new Socket();
@@ -79,13 +79,14 @@ public class bg_thread extends AppCompatActivity {
                 outputStream.writeUTF("Data");
                 try {
                     while(!((input = inputStream.readUTF()).equals("Data End"))){
-                        json = new JSONObject(input);
-                        list.add(json);
+                        list.add(input);
+                        //json = new JSONObject(input);
+                        //list.add(json);
                     }
                 } catch (IOException e) {
                     System.out.println("Data fault!");
                     System.out.println("IOException: " + e.toString());
-                } catch (JSONException e) {
+                } /*catch (JSONException e) {
                     System.out.println("Data fault!");
                     System.out.println("JSONException: " + e.toString());
                 }
@@ -94,7 +95,7 @@ public class bg_thread extends AppCompatActivity {
                 System.out.println("IOException: " + e.toString());
             }
         }
-    };
+    };*/
 
     public String login(String Account, String Password){
             //request data list
@@ -152,6 +153,7 @@ public class bg_thread extends AppCompatActivity {
             }
 
             request = intent.getExtras().getInt("request");
+            System.out.println("client request num: " + request);
             switch(request){
                 case 0:
                     Account = intent.getExtras().getString("Account");
@@ -161,6 +163,13 @@ public class bg_thread extends AppCompatActivity {
                     bundle.putString("login_status", login_status);
                     intent.putExtras(bundle);
                     setResult(0, intent);
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     finish();
                     break;
                 case 1:
@@ -175,13 +184,77 @@ public class bg_thread extends AppCompatActivity {
                     bundle.putString("reg_status", input);
                     intent.putExtras(bundle);
                     setResult(1, intent);
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     finish();
                     break;
                 case 2:
+                    System.out.println("load");
+                    //list.clear();
+                    try {
+                        outputStream.writeUTF("Data");
+                        try {
+                            while(!((input = inputStream.readUTF()).equals("Data End"))){
+                                //json = new JSONObject(input);
+                                System.out.println("json receive: " + input);
+                                list.add(input);
+                            }
+                        } catch (IOException e) {
+                            System.out.println("Data fault!");
+                            System.out.println("IOException: " + e.toString());
+                        } /*catch (JSONException e) {
+                            System.out.println("Data fault!");
+                            System.out.println("JSONException: " + e.toString());
+                        }*/
+                    } catch (IOException e) {
+                        System.out.println("Data fault!");
+                        System.out.println("IOException: " + e.toString());
+                    }
                     bundle = new Bundle();
                     bundle.putSerializable("list", list);
                     intent.putExtras(bundle);
                     setResult(2, intent);
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    finish();
+                    break;
+                case 3:
+                    try {
+                        outputStream.writeUTF("New");
+                        outputStream.writeUTF(intent.getExtras().getString("NewRequest"));
+                        if((input = inputStream.readUTF()).equals("add success")){
+                            System.out.println("Add Request Success!");
+                        }
+                        else{
+                            System.out.println("Add Request Fault!");
+                        }
+
+                    } catch (IOException e) {
+                        System.out.println("Add Request Fault!");
+                        System.out.println("IOException: " + e.toString());
+                    }
+
+                    setResult(3, intent);
+
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    finish();
                     break;
             }
         }

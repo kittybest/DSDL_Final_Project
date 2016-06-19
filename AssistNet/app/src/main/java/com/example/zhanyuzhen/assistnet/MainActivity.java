@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private JSONObject json;
     MyArrayAdapter adapter;
     ArrayList<JSONObject> list = new ArrayList<JSONObject>();
+    ArrayList<String> str_list = new ArrayList<String>();
     //ArrayList<Integer> rqueue = new ArrayList<Integer>();
     ListView mainList;
     Thread thread;
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        intent = getIntent();
+        name = intent.getExtras().getString("UserID");
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //loadRequest();
+        loadRequest();
     }
 
     @Override
@@ -106,33 +109,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume(){
-        intent = getIntent();
-        super.onResume();
+    protected void onRestart(){
+        loadRequest();
+        super.onRestart();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        switch(requestCode){
-            case 2:
-                list = (ArrayList<JSONObject>)data.getExtras().getSerializable("list");
-                mainList = (ListView) findViewById(R.id.main_list);
-                MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
-                mainList.setAdapter(adapter);
-                break;
-            case 3:
-                try {
-                    json = new JSONObject(data.getExtras().getString("json"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestQueue.addRequest(add);
-                RequestQueue.addRequest(Load);
-                break;
+        super.onActivityResult(requestCode, resultCode, data);
+        if(data != null) {
+            switch (requestCode) {
+                case 2:
+                    System.out.println("return to ui thread");
+                    str_list = (ArrayList<String>) data.getExtras().getSerializable("list");
+                    if(str_list.isEmpty()) System.out.println("OMG!!!!Empty!!!!");
+                    list.clear();
+                    for(int i = 0; i < str_list.size(); i ++){
+                        try {
+                            json = new JSONObject(str_list.get(i));
+                            list.add(json);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    mainList = (ListView) findViewById(R.id.main_list);
+                    MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
+                    mainList.setAdapter(adapter);
+                    break;
+                case 3:
+                    break;
+            }
         }
     }
 
-    private Runnable client_request = new Runnable() {
+    /*private Runnable client_request = new Runnable() {
         @Override
         public void run() {
 
@@ -227,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("IOException: " + e.toString());
             }
         }
-    };
+    };*/
 
 
     public void addRequest(){

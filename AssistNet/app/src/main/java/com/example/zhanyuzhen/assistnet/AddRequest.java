@@ -40,7 +40,8 @@ public class AddRequest extends AppCompatActivity {
     //request
     int Login = 0;
     int Load = 1;
-    int add = 2;
+    int Register = 2;
+    int add = 3;
     int Bye = 10;
 
     @Override
@@ -66,16 +67,6 @@ public class AddRequest extends AppCompatActivity {
         bundle = intent.getExtras();
         author = bundle.getString("author");
         //rqueue = (ArrayList<Integer>) bundle.getSerializable("rqueue");
-
-
-        socket = SocketHandler.getSocket();
-        try {
-            inputStream = new DataInputStream(socket.getInputStream());
-            outputStream = new DataOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            System.out.println("Data fault!");
-            System.out.println("IOException: " + e.toString());
-        }
 
     }
 
@@ -106,11 +97,12 @@ public class AddRequest extends AppCompatActivity {
             jsonObject = new JSONObject(map);
             System.out.println("new request: " + jsonObject);
 
-            Bundle Return = new Bundle();
-            Return.putString("json", jsonObject.toString());
-            intent.putExtras(Return);
-            setResult(add, intent);
-            finish();
+            Intent intent2 = new Intent(this, bg_thread.class);
+            Bundle bundle = new Bundle();
+            bundle.putInt("request", 3);
+            bundle.putString("NewRequest", jsonObject.toString());
+            intent2.putExtras(bundle);
+            startActivityForResult(intent2, 3);
 
             return true;
         }
@@ -120,6 +112,16 @@ public class AddRequest extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 3){
+            System.out.println("Add new request success!");
+            setResult(3, intent);
+            finish();
+        }
     }
 
     protected void onPause(){
