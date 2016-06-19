@@ -2,4 +2,6 @@
     <string name="app_name">AssistNet</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_add_request">AddRequest</string>
+    <string name="title_activity_list_request">ListRequest</string>
+    <string name="title_activity_login">Login</string>
 </resources>
