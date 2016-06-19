@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,11 +35,13 @@ public class MyArrayAdapter extends ArrayAdapter<JSONObject> {
         JSONObject json = getItem(position);
         String title = null;
         String author = null;
-        int id = -1;
+        //Date date = null;
+        String date = null;
         try {
             title = json.getString("Title");
             author = json.getString("author");
-            id = json.getInt("id");
+            //date = (Date) json.get("date");//change to date
+            date = json.getString("date");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -46,11 +50,14 @@ public class MyArrayAdapter extends ArrayAdapter<JSONObject> {
         View rowView = inflater.inflate(resourceID, parentView, false);
         TextView Title = (TextView)rowView.findViewById(R.id.main_title);
         TextView Author = (TextView)rowView.findViewById(R.id.main_author);
-        TextView Id = (TextView)rowView.findViewById(R.id.main_id);
+        TextView Date = (TextView)rowView.findViewById(R.id.main_id);
 
         Title.setText(title);
         Author.setText(author);
-        Id.setText(Integer.toString(id));
+        //SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+        //String curDate = dateFormat.format(date);
+        //Date.setText(curDate);
+        Date.setText(date);
 
         return rowView;
     }

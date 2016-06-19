@@ -2,7 +2,10 @@ package com.example.zhanyuzhen.assistnet;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -27,19 +30,29 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     //parameters
-    private String address = "10.0.2.15";
+    private String address = "10.5.2.56";
     private int ClientPort = 8765;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private Socket socket;
     private String input;
     private JSONObject json;
+    MyArrayAdapter adapter;
     ArrayList<JSONObject> list = new ArrayList<JSONObject>();
+    //ArrayList<Integer> rqueue = new ArrayList<Integer>();
     ListView mainList;
     Thread thread;
     Context main = this;
+    String name = "Doris";//到時候取login的值
+    Intent intent;
 
-    //protocols
+    //requests
+    int Login = 0;
+    int Load = 1;
+    int add = 2;
+    int Bye = 10;
+
+    //protocol
     //none
 
     @Override
@@ -53,12 +66,14 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
+                addRequest();
             }
         });
 
-        (new Server()).start();
+        RequestQueue.addRequest(Load);
+        //(new Server()).start();
         thread = new Thread(client_request);
         thread.start();
 
@@ -88,17 +103,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy(){
+        RequestQueue.addRequest(Bye);
         super.onDestroy();
-        try {
-            outputStream.writeUTF("Bye");
-            outputStream.close();
-            outputStream = null;
-            inputStream.close();
-            inputStream = null;
-            socket.close();
-        } catch (IOException e) {
-            System.out.println("Close fault!");
-            System.out.println("IOException: " + e.toString());
+    }
+
+    @Override
+    protected void onResume(){
+        intent = getIntent();
+        super.onResume();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        switch(resultCode){
+            case 2:
+                try {
+                    json = new JSONObject(data.getExtras().getString("json"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                RequestQueue.addRequest(add);
+                RequestQueue.addRequest(Load);
+                break;
         }
     }
 
@@ -116,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("Socket Fault! from client");
                 System.out.println("IOException: " + e.toString());
             }
+            SocketHandler.setSocket(socket);
             //initialize input and output stream
             try {
                 inputStream = new DataInputStream(socket.getInputStream());
@@ -124,31 +151,92 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("client I/O Fault!");
                 System.out.println("IOException: " + e.toString());
             }
+
             //request data list
-            try {
-                outputStream.writeUTF("Data");
-                try {
-                    while(!((input = inputStream.readUTF()).equals("Data End"))){
-                        json = new JSONObject(input);
-                        list.add(json);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Data fault!");
-                    System.out.println("IOException: " + e.toString());
-                } catch (JSONException e) {
-                    System.out.println("Data fault!");
-                    System.out.println("JSONException: " + e.toString());
+            while(RequestQueue.isEmpty() || (!RequestQueue.isEmpty() && RequestQueue.getRequest(0) != Bye)) {
+                if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == Login){
+
                 }
+                else if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == Load){
+                    System.out.println("load");
+                    list.clear();
+                    try {
+                        outputStream.writeUTF("Data");
+                        try {
+                            while(!((input = inputStream.readUTF()).equals("Data End"))){
+                                json = new JSONObject(input);
+                                list.add(json);
+                                //Message msg = handler.obtainMessage();
+                                //msg.what = 2;
+                                //msg.sendToTarget();
+                            }
+                        } catch (IOException e) {
+                            System.out.println("Data fault!");
+                            System.out.println("IOException: " + e.toString());
+                        } catch (JSONException e) {
+                            System.out.println("Data fault!");
+                            System.out.println("JSONException: " + e.toString());
+                        }
+                    } catch (IOException e) {
+                        System.out.println("Data fault!");
+                        System.out.println("IOException: " + e.toString());
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mainList = (ListView) findViewById(R.id.main_list);
+                            MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
+                            mainList.setAdapter(adapter);
+                        }
+                    });
+                    RequestQueue.rmRequest(0);
+                }
+                else if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == add){
+                    try {
+                        outputStream.writeUTF("New");
+                        outputStream.writeUTF(json.toString());
+                        if((input = inputStream.readUTF()).equals("add success")){
+                            System.out.println("Add Request Success!");
+                        }
+                        else{
+                            System.out.println("Add Request Fault!");
+                        }
+
+                    } catch (IOException e) {
+                        System.out.println("Add Request Fault!");
+                        System.out.println("IOException: " + e.toString());
+                    }
+                    RequestQueue.rmRequest(0);
+                }
+
+            }
+            //Bye
+            try {
+                outputStream.writeUTF("Bye");
+                outputStream.close();
+                outputStream = null;
+                inputStream.close();
+                inputStream = null;
+                socket.close();
             } catch (IOException e) {
-                System.out.println("Data fault!");
+                System.out.println("Close fault!");
                 System.out.println("IOException: " + e.toString());
             }
-
-            mainList = (ListView) findViewById(R.id.main_list);
-            MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
-            mainList.setAdapter(adapter);
-
-            
         }
     };
+
+
+    public void addRequest(){
+        Intent intent = new Intent(this, AddRequest.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("author", name);
+        //bundle.putSerializable("rqueue", rqueue);
+        intent.putExtras(bundle);
+        startActivityForResult(intent, add);
+
+       // RequestQueue.addRequest(add);
+       // RequestQueue.addRequest(Load);
+    }
+
+
 }
