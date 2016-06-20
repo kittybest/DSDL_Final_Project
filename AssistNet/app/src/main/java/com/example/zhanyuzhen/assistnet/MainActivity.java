@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     int add = 3;
     int edit =4;
     int del = 5;
+    int sup = 6;
     int Bye = 10;
 
     //protocol
@@ -86,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
                 addRequest();
             }
         });
-
         loadRequest();
     }
 
@@ -145,7 +146,22 @@ public class MainActivity extends AppCompatActivity {
                     mainList = (ListView) findViewById(R.id.main_list);
                     MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
                     mainList.setAdapter(adapter);
-                    adapter.notifyDataSetChanged();
+                    //adapter.notifyDataSetChanged();
+                    /*mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            System.out.println("item clicked!");
+                            //parent.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                            JSONObject json_tmp = (JSONObject) parent.getItemAtPosition(position);
+                            intent = new Intent(main, View_Requests.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putInt("request", 6);
+                            bundle.putString("json", json_tmp.toString());
+                            bundle.putString("name", name);
+                            intent.putExtras(bundle);
+                            startActivityForResult(intent, 6);
+                        }
+                    });*/
                     break;
                 case 5:
                     loadRequest();
@@ -209,6 +225,8 @@ public class MainActivity extends AppCompatActivity {
             TextView Author = (TextView)rowView.findViewById(R.id.main_author);
             TextView Date = (TextView)rowView.findViewById(R.id.main_id);
 
+            parentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+
             Title.setText(title);
             Author.setText(author);
             //SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
@@ -216,9 +234,28 @@ public class MainActivity extends AppCompatActivity {
             //Date.setText(curDate);
             Date.setText(date);
 
+            Button view = (Button)rowView.findViewById(R.id.view);
             Button edit = (Button)rowView.findViewById(R.id.edit);
             Button del = (Button)rowView.findViewById(R.id.delete);
+
             final String finalAuthor = author;
+
+            view.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    System.out.println("item clicked!");
+                    //parent.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                    //JSONObject json_tmp = (JSONObject) parent.getItemAtPosition(position);
+                    intent = new Intent(main, View_Requests.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("request", 6);
+                    bundle.putString("json", json.toString());
+                    bundle.putString("name", name);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent, 6);
+                }
+            });
+
             edit.setOnClickListener(new View.OnClickListener(){
 
                 @Override

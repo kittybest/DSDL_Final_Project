@@ -309,6 +309,36 @@ public class bg_thread extends AppCompatActivity {
 
                     finish();
                     break;
+                case 6:
+                    try {
+                        outputStream.writeUTF("Support");
+                        outputStream.writeUTF(intent.getExtras().getString("json"));
+                        outputStream.writeUTF(intent.getExtras().getString("name"));
+                        System.out.println("in bg thread: "+ intent.getExtras().getString("num")+intent.getExtras().getString("pic"));
+                        outputStream.writeUTF(intent.getExtras().getString("num"));
+                        outputStream.writeUTF(intent.getExtras().getString("pic"));
+                        if((input = inputStream.readUTF()).equals("support success")){
+                            System.out.println("Add Support Success!");
+                        }
+                        else{
+                            System.out.println("Add Support Fault!");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    setResult(6, intent);
+
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    finish();
+                    break;
             }
         }
     };

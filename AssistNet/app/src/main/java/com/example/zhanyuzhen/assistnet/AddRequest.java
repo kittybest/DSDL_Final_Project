@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,6 +32,8 @@ public class AddRequest extends AppCompatActivity {
     private DataOutputStream outputStream;
     private Socket socket;
     //ArrayList<Integer> rqueue = new ArrayList<Integer>();
+    HashMap<String, String> base_sup;
+    ArrayList<HashMap<String, String>> support;
     JSONObject jsonObject;
     String author;
     Intent intent;
@@ -73,6 +76,12 @@ public class AddRequest extends AppCompatActivity {
         }
         bundle = intent.getExtras();
         author = bundle.getString("author");
+        base_sup = new HashMap<String, String>();
+        base_sup.put("num", "數量");
+        base_sup.put("pic", "圖片");
+        base_sup.put("name", "支援人");
+        support = new ArrayList<HashMap<String, String>>();
+        support.add(base_sup);
         //rqueue = (ArrayList<Integer>) bundle.getSerializable("rqueue");
 
     }
@@ -111,6 +120,8 @@ public class AddRequest extends AppCompatActivity {
                 try {
                     jsonObject.put("date", date);
                     jsonObject.put("author", author);
+                    JSONArray array_tmp = new JSONArray(support);
+                    jsonObject.put("support", array_tmp);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -129,6 +140,7 @@ public class AddRequest extends AppCompatActivity {
                 try {
                     jsonObject.put("date", tmp.getString("date"));
                     jsonObject.put("author", tmp.getString("author"));
+                    jsonObject.put("support", tmp.getString("support"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
