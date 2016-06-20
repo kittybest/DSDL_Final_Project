@@ -149,6 +149,7 @@ public class Server extends Thread {
                     else if(input.equals("Support")){
                         System.out.println("client request add support");
                         input = inputStream.readUTF();
+                        json = new JSONObject(input);
                         System.out.println("input: " + input);
                         for(int i = 0 ; i < list.size(); i ++){
                         
@@ -177,6 +178,7 @@ public class Server extends Thread {
                                  tmp_list.add(map_tmp);
                                  JSONArray support = new JSONArray(tmp_list);
                                  list.get(i).put("support", support);
+                                 outputStream.writeUTF(list.get(i).toString());
                                  System.out.println("new support" + support);
                                  break;
                            }
