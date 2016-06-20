@@ -46,7 +46,7 @@ public class Server extends Thread {
         System.out.println("ip = " + ip);
 
         //try put in list
-        /*Map map_1 = new HashMap();
+        Map map_1 = new HashMap();
         map_1.put("Title", "pot");
         map_1.put("Content", "need a pot for performance.");
         map_1.put("author", "Doris");
@@ -66,7 +66,7 @@ public class Server extends Thread {
         for(int i = 0; i < showJson.length(); i ++){
             show.add(showJson.get(i).toString());
             System.out.println("c1: " + show.get(i));
-        }*/
+        }
         /*Map map_2 = new HashMap();
         map_2.put("Title", "hat");
         map_2.put("Content", "two hats for travel.");
@@ -111,9 +111,79 @@ public class Server extends Thread {
                         System.out.println("input: " + input);
                         json = new JSONObject(input);
                         list.add(json);
+                        System.out.println("new request success!");
                         outputStream.writeUTF("add success");
                     }
-                    else if (input.equals("Login")){
+                    else if (input.equals("Edit")){
+                        System.out.println("client request edit data");
+                        input = inputStream.readUTF();
+                        System.out.println("input: " + input);
+                        json = new JSONObject(input);
+                        for(int i = 0; i < list.size(); i ++){
+                           if((json.getString("author")).equals(list.get(i).getString("author")) && 
+                                 (json.getString("date")).equals(list.get(i).getString("date"))){
+                                 list.set(i, json);
+                                 System.out.println("i = " + i);
+                                 break;
+                           }
+                        }
+                        System.out.println("edit request success");
+                        outputStream.writeUTF("edit success");
+                    }
+                    else if(input.equals("Delete")){
+                        System.out.println("client request delete data");
+                        input = inputStream.readUTF();
+                        System.out.println("input: " + input);
+                        json = new JSONObject(input);
+                        for(int i = 0 ; i < list.size(); i ++){
+                        
+                           if((json.getString("author")).equals(list.get(i).getString("author")) && 
+                                 (json.getString("date")).equals(list.get(i).getString("date"))){
+                                 list.remove(i);
+                                 System.out.println("i = " + i);
+                                 break;
+                           }
+                        }
+                        outputStream.writeUTF("delete success");
+                    }
+                    else if(input.equals("Support")){
+                        System.out.println("client request add support");
+                        input = inputStream.readUTF();
+                        System.out.println("input: " + input);
+                        for(int i = 0 ; i < list.size(); i ++){
+                        
+                           if((json.getString("author")).equals(list.get(i).getString("author")) && 
+                                 (json.getString("date")).equals(list.get(i).getString("date"))){
+                                 System.out.println("i = " + i);
+                                 JSONArray jsonArray = list.get(i).getJSONArray("support");
+                                 System.out.println("jsonArray = " + jsonArray);
+                                 ArrayList<HashMap<String, String>> tmp_list = new ArrayList<HashMap<String, String>>();
+                                 for(int j = 0; j < jsonArray.length(); j ++){
+                                       System.out.println("hashing map");
+                                       JSONObject tmp = new JSONObject(jsonArray.get(j).toString());
+                                       HashMap<String, String> map_tmp = new HashMap<String, String>();
+                                       map_tmp.put("name", tmp.getString("name"));
+                                       map_tmp.put("num", tmp.getString("num"));
+                                       map_tmp.put("pic", tmp.getString("pic"));
+                                       tmp_list.add(map_tmp);
+                                 }
+                                 String Name = inputStream.readUTF();
+                                 String Num = inputStream.readUTF();
+                                 String Pic = inputStream.readUTF();
+                                 HashMap<String, String> map_tmp = new HashMap<String, String>();
+                                 map_tmp.put("name", Name);
+                                 map_tmp.put("num", Num);
+                                 map_tmp.put("pic", Pic);
+                                 tmp_list.add(map_tmp);
+                                 JSONArray support = new JSONArray(tmp_list);
+                                 list.get(i).put("support", support);
+                                 System.out.println("new support" + support);
+                                 break;
+                           }
+                        }
+                        outputStream.writeUTF("support success");
+                    }
+                    else if (input.equals("LogIn")){
                         String account, passwd;
                         account = inputStream.readUTF();
                         passwd = inputStream.readUTF();
@@ -165,6 +235,7 @@ public class Server extends Thread {
                         else {
                            user_info.add(jsonAccount);
                            outputStream.writeUTF("Register_Success");
+                           System.out.println("Register Success");
                         }
                     }
                 }
