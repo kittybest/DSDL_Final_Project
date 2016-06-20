@@ -14,15 +14,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class View_Requests extends AppCompatActivity {
 
@@ -33,6 +38,8 @@ public class View_Requests extends AppCompatActivity {
     Context context;
     String Num;
     String Pic;
+    ListView supportList;
+    ArrayList<JSONObject> supports = new ArrayList<JSONObject>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,8 +122,28 @@ public class View_Requests extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 6) {
             System.out.println("Add new support success!");
+
+            supports.clear();
+
+            String str_json = data.getExtras().getString("str_json");
+            JSONObject json = null;
+            JSONArray jsonArray;
+            try {
+                json = new JSONObject(str_json);
+                jsonArray = json.getJSONArray("support");
+                for(int i = 0; i < jsonArray.length(); i ++){
+                    JSONObject tmp = new JSONObject(jsonArray.get(i).toString());
+                    supports.add(tmp);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            supportList = (ListView)findViewById(R.id.view_supporters);
+            MyAdapter adapter = new MyAdapter(context, R.layout.support_list, supports);
+            supportList.setAdapter(adapter);
+
             setResult(6, intent);
-            finish();
         }
     }
 
@@ -126,7 +153,7 @@ public class View_Requests extends AppCompatActivity {
         TextView content = (TextView)findViewById(R.id.view_content);
         TextView author = (TextView)findViewById(R.id.view_author);
         TextView date = (TextView)findViewById(R.id.view_date);
-        ListView supporters = (ListView)findViewById(R.id.view_supporters);
+
         try {
             title.setText(jsonObject.getString("Title"));
             num.setText(jsonObject.getString("Number"));
@@ -135,6 +162,58 @@ public class View_Requests extends AppCompatActivity {
             date.setText(jsonObject.getString("date"));
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+
+        System.out.print("before jsonarray");
+
+
+        JSONArray jsonArray;
+            try {
+                jsonArray = jsonObject.getJSONArray("support");
+                System.out.println("jsonArray length: " + jsonArray.length());
+                for(int i = 0; i < jsonArray.length(); i ++) {
+                    JSONObject tmp = new JSONObject(jsonArray.get(i).toString());
+                    supports.add(tmp);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        supportList = (ListView)findViewById(R.id.view_supporters);
+        MyAdapter adapter = new MyAdapter(context, R.layout.support_list, supports);
+        supportList.setAdapter(adapter);
+    }
+
+    public class MyAdapter extends ArrayAdapter<JSONObject> {
+
+        private int resourceID;
+
+        public MyAdapter(Context context, int resource, ArrayList<JSONObject> list) {
+            super(context, resource, list);
+            this.resourceID = resource;
+
+        }
+
+        public View getView(int position, View convertView, ViewGroup parentView){
+
+            final JSONObject jsonObject = getItem(position);
+
+            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View rowView = inflater.inflate(resourceID, parentView, false);
+            TextView Name = (TextView)rowView.findViewById(R.id.sup_name);
+            TextView Num = (TextView)rowView.findViewById(R.id.sup_num);
+            TextView Pic = (TextView)rowView.findViewById(R.id.sup_pic);
+
+            try {
+                Name.setText(jsonObject.getString("name"));
+                Num.setText(jsonObject.getString("num"));
+                Pic.setText(jsonObject.getString("pic"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            return rowView;
         }
     }
 }

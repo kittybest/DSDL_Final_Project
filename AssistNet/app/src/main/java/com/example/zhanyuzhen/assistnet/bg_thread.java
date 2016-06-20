@@ -37,6 +37,7 @@ public class bg_thread extends AppCompatActivity {
    // String reg_status;
     String Account = "";
     String Password = "";
+    String str_json;
     /*int Login = 0;
     int Register = 1;
     int Load = 2;
@@ -314,9 +315,11 @@ public class bg_thread extends AppCompatActivity {
                         outputStream.writeUTF("Support");
                         outputStream.writeUTF(intent.getExtras().getString("json"));
                         outputStream.writeUTF(intent.getExtras().getString("name"));
-                        System.out.println("in bg thread: "+ intent.getExtras().getString("num")+intent.getExtras().getString("pic"));
+                        System.out.println("in bg thread: " + intent.getExtras().getString("num") + intent.getExtras().getString("pic"));
                         outputStream.writeUTF(intent.getExtras().getString("num"));
                         outputStream.writeUTF(intent.getExtras().getString("pic"));
+                        str_json = inputStream.readUTF();
+                        System.out.println("str_json = " + str_json);
                         if((input = inputStream.readUTF()).equals("support success")){
                             System.out.println("Add Support Success!");
                         }
@@ -327,6 +330,9 @@ public class bg_thread extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
+                    Bundle bundle = new Bundle();
+                    bundle.putString("str_json", str_json);
+                    intent.putExtras(bundle);
                     setResult(6, intent);
 
                     try {
