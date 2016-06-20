@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -36,12 +37,14 @@ public class AddRequest extends AppCompatActivity {
     Date date;
     String input;
     Bundle bundle;
+    int Request;
 
     //request
     int Login = 0;
     int Load = 1;
     int Register = 2;
     int add = 3;
+    int edit = 4;
     int Bye = 10;
 
     @Override
@@ -64,6 +67,10 @@ public class AddRequest extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         intent = getIntent();
+        Request = intent.getExtras().getInt("request");
+        if(Request == 4){
+            populatefield();
+        }
         bundle = intent.getExtras();
         author = bundle.getString("author");
         //rqueue = (ArrayList<Integer>) bundle.getSerializable("rqueue");
@@ -84,25 +91,53 @@ public class AddRequest extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.save) {
-            Map map = new HashMap();
-            TextView textView = (TextView)findViewById(R.id.request);
-            map.put("Title", textView.getText().toString());
-            textView = (TextView)findViewById(R.id.num);
-            map.put("Number", textView.getText().toString());
-            textView = (TextView)findViewById(R.id.note);
-            map.put("note", textView.getText().toString());
-            map.put("author", author);
-            date = new Date(System.currentTimeMillis());
-            map.put("date", date);
-            jsonObject = new JSONObject(map);
-            System.out.println("new request: " + jsonObject);
 
-            Intent intent2 = new Intent(this, bg_thread.class);
-            Bundle bundle = new Bundle();
-            bundle.putInt("request", 3);
-            bundle.putString("NewRequest", jsonObject.toString());
-            intent2.putExtras(bundle);
-            startActivityForResult(intent2, 3);
+                Map map = new HashMap();
+                TextView textView = (TextView) findViewById(R.id.request);
+                map.put("Title", textView.getText().toString());
+                textView = (TextView) findViewById(R.id.num);
+                map.put("Number", textView.getText().toString());
+                textView = (TextView) findViewById(R.id.note);
+                map.put("note", textView.getText().toString());
+                //map.put("author", author);
+                date = new Date(System.currentTimeMillis());
+                //map.put("date", date);
+                jsonObject = new JSONObject(map);
+                Intent intent2 = new Intent(this, bg_thread.class);
+                Bundle bundle = new Bundle();
+
+            if(Request == 3) {
+                bundle.putInt("request", 3);
+                try {
+                    jsonObject.put("date", date);
+                    jsonObject.put("author", author);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("new request: " + jsonObject);
+                bundle.putString("NewRequest", jsonObject.toString());
+                intent2.putExtras(bundle);
+                startActivityForResult(intent2, 3);
+            }
+            else{
+                JSONObject tmp = null;
+                try {
+                    tmp = new JSONObject(intent.getExtras().getString("json"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    jsonObject.put("date", tmp.getString("date"));
+                    jsonObject.put("author", tmp.getString("author"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("edit request: " + jsonObject);
+                bundle.putInt("request", 4);
+                bundle.putString("EditRequest", jsonObject.toString());
+                intent2.putExtras(bundle);
+                startActivityForResult(intent2, 4);
+            }
 
             return true;
         }
@@ -122,9 +157,42 @@ public class AddRequest extends AppCompatActivity {
             setResult(3, intent);
             finish();
         }
+        else{
+            System.out.println("Edit request success!");
+            setResult(4, intent);
+            finish();
+        }
     }
 
     protected void onPause(){
         super.onPause();
+    }
+
+    public void populatefield(){
+        JSONObject json = null;
+        try {
+            json = new JSONObject(intent.getExtras().getString("json"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        TextView request = (TextView)findViewById(R.id.request);
+        try {
+            request.setText(json.getString("Title"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        TextView num = (TextView)findViewById(R.id.num);
+        try {
+            num.setText(json.getString("Number"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        TextView note = (TextView)findViewById(R.id.note);
+        try {
+            note.setText(json.getString("note"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 }

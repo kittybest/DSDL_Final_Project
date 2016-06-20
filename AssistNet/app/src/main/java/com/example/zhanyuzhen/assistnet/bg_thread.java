@@ -41,6 +41,8 @@ public class bg_thread extends AppCompatActivity {
     int Register = 1;
     int Load = 2;
     int Add = 3;
+    int edit = 4;
+    int del = 5;
     int Bye = 10;*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -245,6 +247,57 @@ public class bg_thread extends AppCompatActivity {
                     }
 
                     setResult(3, intent);
+
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    finish();
+                    break;
+                case 4:
+                    try {
+                        outputStream.writeUTF("Edit");
+                        outputStream.writeUTF(intent.getExtras().getString("EditRequest"));
+                        if((input = inputStream.readUTF()).equals("edit success")){
+                            System.out.println("Edit Request Success!");
+                        }
+                        else{
+                            System.out.println("Edit Request Fault!");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    setResult(4, intent);
+
+                    try {
+                        inputStream.close();
+                        outputStream.close();
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    finish();
+                    break;
+                case 5:
+                    try {
+                        outputStream.writeUTF("Delete");
+                        outputStream.writeUTF(intent.getExtras().getString("json"));
+                        if((input = inputStream.readUTF()).equals("delete success")){
+                            System.out.println("Delete Request Success!");
+                        }
+                        else{
+                            System.out.println("Delete Request Fault!");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    setResult(5, intent);
 
                     try {
                         inputStream.close();

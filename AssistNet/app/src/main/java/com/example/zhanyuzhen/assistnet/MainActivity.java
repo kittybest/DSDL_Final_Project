@@ -10,10 +10,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,8 +28,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -52,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     int Register = 1;
     int Load = 2;
     int add = 3;
+    int edit =4;
+    int del = 5;
     int Bye = 10;
 
     //protocol
@@ -135,114 +145,21 @@ public class MainActivity extends AppCompatActivity {
                     mainList = (ListView) findViewById(R.id.main_list);
                     MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
                     mainList.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
                     break;
-                case 3:
+                case 5:
+                    loadRequest();
                     break;
+
             }
         }
     }
-
-    /*private Runnable client_request = new Runnable() {
-        @Override
-        public void run() {
-
-            //connect to Server
-            socket = new Socket();
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
-            try{
-                socket.connect(inetSocketAddress, 20000);
-                System.out.println("Socket success!");
-            } catch(IOException e){
-                System.out.println("Socket Fault! from client");
-                System.out.println("IOException: " + e.toString());
-            }
-            SocketHandler.setSocket(socket);
-            //initialize input and output stream
-            try {
-                inputStream = new DataInputStream(socket.getInputStream());
-                outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                System.out.println("client I/O Fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-
-            //request data list
-            while(RequestQueue.isEmpty() || (!RequestQueue.isEmpty() && RequestQueue.getRequest(0) != Bye)) {
-                if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == Login){
-
-                }
-                else if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == Load){
-                    System.out.println("load");
-                    list.clear();
-                    try {
-                        outputStream.writeUTF("Data");
-                        try {
-                            while(!((input = inputStream.readUTF()).equals("Data End"))){
-                                json = new JSONObject(input);
-                                list.add(json);
-                                //Message msg = handler.obtainMessage();
-                                //msg.what = 2;
-                                //msg.sendToTarget();
-                            }
-                        } catch (IOException e) {
-                            System.out.println("Data fault!");
-                            System.out.println("IOException: " + e.toString());
-                        } catch (JSONException e) {
-                            System.out.println("Data fault!");
-                            System.out.println("JSONException: " + e.toString());
-                        }
-                    } catch (IOException e) {
-                        System.out.println("Data fault!");
-                        System.out.println("IOException: " + e.toString());
-                    }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mainList = (ListView) findViewById(R.id.main_list);
-                            MyArrayAdapter adapter = new MyArrayAdapter(main, R.layout.main_list, list);
-                            mainList.setAdapter(adapter);
-                        }
-                    });
-                    RequestQueue.rmRequest(0);
-                }
-                else if(!RequestQueue.isEmpty() && RequestQueue.getRequest(0) == add){
-                    try {
-                        outputStream.writeUTF("New");
-                        outputStream.writeUTF(json.toString());
-                        if((input = inputStream.readUTF()).equals("add success")){
-                            System.out.println("Add Request Success!");
-                        }
-                        else{
-                            System.out.println("Add Request Fault!");
-                        }
-
-                    } catch (IOException e) {
-                        System.out.println("Add Request Fault!");
-                        System.out.println("IOException: " + e.toString());
-                    }
-                    RequestQueue.rmRequest(0);
-                }
-
-            }
-            //Bye
-            try {
-                outputStream.writeUTF("Bye");
-                outputStream.close();
-                outputStream = null;
-                inputStream.close();
-                inputStream = null;
-                socket.close();
-            } catch (IOException e) {
-                System.out.println("Close fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-        }
-    };*/
 
 
     public void addRequest(){
         intent = new Intent(this, AddRequest.class);
         Bundle bundle = new Bundle();
+        bundle.putInt("request", 3);
         bundle.putString("author", name);
         intent.putExtras(bundle);
         startActivityForResult(intent, add);
@@ -255,4 +172,85 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtras(bundle);
         startActivityForResult(intent, Load);
     }
+
+
+    //my array adapter
+    public class MyArrayAdapter extends ArrayAdapter<JSONObject> {
+
+        private int resourceID;
+
+        public MyArrayAdapter(Context context, int resource, List<JSONObject> list) {
+            super(context, resource, list);
+            this.resourceID = resource;
+
+        }
+
+        public View getView(int position, View convertView, ViewGroup parentView){
+//        super.getView(position, convertView, parentView);
+
+            //get data
+            final JSONObject json = getItem(position);
+            String title = null;
+            String author = null;
+            //Date date = null;
+            String date = null;
+            try {
+                title = json.getString("Title");
+                author = json.getString("author");
+                //date = (Date) json.get("date");//change to date
+                date = json.getString("date");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            //set view
+            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View rowView = inflater.inflate(resourceID, parentView, false);
+            TextView Title = (TextView)rowView.findViewById(R.id.main_title);
+            TextView Author = (TextView)rowView.findViewById(R.id.main_author);
+            TextView Date = (TextView)rowView.findViewById(R.id.main_id);
+
+            Title.setText(title);
+            Author.setText(author);
+            //SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+            //String curDate = dateFormat.format(date);
+            //Date.setText(curDate);
+            Date.setText(date);
+
+            Button edit = (Button)rowView.findViewById(R.id.edit);
+            Button del = (Button)rowView.findViewById(R.id.delete);
+            final String finalAuthor = author;
+            edit.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v) {
+                    if(name.equals(finalAuthor)) {
+                        Intent intent = new Intent(v.getContext(), AddRequest.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("request", 4);
+                        bundle.putString("json", json.toString());
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 4);
+                    }
+                }
+            });
+
+            del.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if(name.equals(finalAuthor)){
+                        Intent intent = new Intent(v.getContext(), bg_thread.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("request", 5);
+                        bundle.putString("json", json.toString());
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 5);
+                    }
+                }
+            });
+
+            return rowView;
+        }
+    }
+
 }
