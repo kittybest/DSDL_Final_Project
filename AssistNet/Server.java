@@ -33,6 +33,7 @@ public class Server extends Thread {
     ArrayList<JSONObject> list = new ArrayList<JSONObject>();
     private Socket socket = new Socket();
     ArrayList<JSONObject> user_info = new ArrayList<JSONObject>();
+    Map<String, ArrayList<String>> mails = new HashMap<String, ArrayList<String>>(); 
 
     public Server(){
         try{
@@ -67,20 +68,6 @@ public class Server extends Thread {
             show.add(showJson.get(i).toString());
             System.out.println("c1: " + show.get(i));
         }
-        /*Map map_2 = new HashMap();
-        map_2.put("Title", "hat");
-        map_2.put("Content", "two hats for travel.");
-        map_2.put("author", "James");
-        map_2.put("id", 1);
-        JSONObject second = new JSONObject(map_2);
-        list.add(second);
-        Map map_3 = new HashMap();
-        map_3.put("Title", "dress");
-        map_3.put("Content", "two dresses for party.");
-        map_3.put("author", "Doris");
-        map_3.put("id", 2);
-        JSONObject third = new JSONObject(map_3);
-        list.add(third);*/
     }
     public void run(){
         System.out.println("Server start!");
@@ -151,6 +138,15 @@ public class Server extends Thread {
                         input = inputStream.readUTF();
                         json = new JSONObject(input);
                         System.out.println("input: " + input);
+                        if(mails.get(json.getString("author"))!= null){
+                           mails.get(json.getString("author")).add(json.getString("date"));
+                           System.out.println("support for " + json.getString("author") + ":" + mails.get(json.getString("author")).get(0));
+                        } else {
+                           ArrayList<String> user_support = new ArrayList<String>();
+                           user_support.add(json.getString("date"));
+                           mails.put(json.getString("author"), user_support);
+                           System.out.println("support for " + json.getString("author") + ":" + mails.get(json.getString("author")).get(0));
+                        }
                         for(int i = 0 ; i < list.size(); i ++){
                         
                            if((json.getString("author")).equals(list.get(i).getString("author")) && 
@@ -195,7 +191,14 @@ public class Server extends Thread {
                               if(user_info.get(i).getString("account").equals(account)){
                                  NoAccount = false;
                                  if(user_info.get(i).getString("password").equals(passwd)){
+                                    //login success
                                     outputStream.writeUTF("LogIn_Success");
+                                    //get mailbox
+                                    outputStream.writeUTF("mail");
+                                    for(int j = 0; j < mails.get(account).size(); j ++){
+                                       outputStream.writeUTF(mails.get(account).get(j));
+                                    }
+                                    outputStream.writeUTF("mail end");
                                  }
                                  else{
                                     outputStream.writeUTF("LogIn_WrongPassWord");
