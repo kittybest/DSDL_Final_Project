@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 public class bg_thread extends AppCompatActivity {
 
+    //private String address = "169.254.215.24";
     private String address = "10.5.2.56";
     private int ClientPort = 8765;
     private DataInputStream inputStream;
@@ -38,6 +39,7 @@ public class bg_thread extends AppCompatActivity {
     String Account = "";
     String Password = "";
     String str_json;
+    ArrayList<String> mails = new ArrayList<String>();
     /*int Login = 0;
     int Register = 1;
     int Load = 2;
@@ -55,51 +57,6 @@ public class bg_thread extends AppCompatActivity {
     }
 
 
-   /* private Runnable load = new Runnable(){
-        @Override
-        public void run(){
-            socket = new Socket();
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
-            try{
-                socket.connect(inetSocketAddress, 20000);
-                System.out.println("Socket success!");
-            } catch(IOException e){
-                System.out.println("Socket Fault! from client");
-                System.out.println("IOException: " + e.toString());
-            }
-            SocketHandler.setSocket(socket);
-            //initialize input and output stream
-            try {
-                inputStream = new DataInputStream(socket.getInputStream());
-                outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                System.out.println("client I/O Fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-            System.out.println("load");
-            list.clear();
-            try {
-                outputStream.writeUTF("Data");
-                try {
-                    while(!((input = inputStream.readUTF()).equals("Data End"))){
-                        list.add(input);
-                        //json = new JSONObject(input);
-                        //list.add(json);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Data fault!");
-                    System.out.println("IOException: " + e.toString());
-                } /*catch (JSONException e) {
-                    System.out.println("Data fault!");
-                    System.out.println("JSONException: " + e.toString());
-                }
-            } catch (IOException e) {
-                System.out.println("Data fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-        }
-    };*/
-
     public String login(String Account, String Password){
             //request data list
             try {
@@ -107,11 +64,20 @@ public class bg_thread extends AppCompatActivity {
                 outputStream.writeUTF(Account);
                 outputStream.writeUTF(Password);
                 input = inputStream.readUTF();
-
+                if(input.equals("LogIn_Success")){
+                    input = inputStream.readUTF();
+                    System.out.println("after login success, " + input); // should be "mail"
+                    while(!((input=inputStream.readUTF()).equals("mail end"))){
+                        mails.add(input);
+                    }
+                }
+                else{
+                    return input;
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return input;
+            return "LogIn_Success";
     }
 
     public String register(JSONObject jsonObject){
@@ -164,6 +130,7 @@ public class bg_thread extends AppCompatActivity {
                     String login_status = login(Account, Password);
                     bundle = new Bundle();
                     bundle.putString("login_status", login_status);
+                    bundle.putSerializable("mails", mails);
                     intent.putExtras(bundle);
                     setResult(0, intent);
                     try {

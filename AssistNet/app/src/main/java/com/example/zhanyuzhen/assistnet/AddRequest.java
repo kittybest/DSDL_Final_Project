@@ -140,7 +140,8 @@ public class AddRequest extends AppCompatActivity {
                 try {
                     jsonObject.put("date", tmp.getString("date"));
                     jsonObject.put("author", tmp.getString("author"));
-                    jsonObject.put("support", tmp.getString("support"));
+                    JSONArray array_tmp = new JSONArray(tmp.getString("support"));
+                    jsonObject.put("support", array_tmp);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

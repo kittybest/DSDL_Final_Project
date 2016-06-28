@@ -1,8 +1,11 @@
 package com.example.zhanyuzhen.assistnet;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     MyArrayAdapter adapter;
     ArrayList<JSONObject> list = new ArrayList<JSONObject>();
     ArrayList<String> str_list = new ArrayList<String>();
+    ArrayList<String> mails = new ArrayList<String>();
     //ArrayList<Integer> rqueue = new ArrayList<Integer>();
     ListView mainList;
     Thread thread;
@@ -74,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         intent = getIntent();
         name = intent.getExtras().getString("UserID");
+        mails = (ArrayList<String>) intent.getExtras().getSerializable("mails");
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -108,6 +114,48 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }
+        else {
+            if (id == R.id.mail) {
+                String[] mailbox = new String[mails.size()];
+                mailbox = mails.toArray(mailbox);
+
+                AlertDialog.Builder Mailbox = new AlertDialog.Builder(this);
+                Mailbox.setTitle("Mailbox");
+                final String[] finalMailbox = mailbox;
+                DialogInterface.OnClickListener listclick = new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //Toast.makeText(main, "yeah", Toast.LENGTH_SHORT).show();
+                        JSONObject jsonObject = new JSONObject();
+                        for(int i = 0 ; i < list.size(); i ++){
+                            try {
+                                if(list.get(i).getString("date").equals(finalMailbox[which])){
+                                    jsonObject = list.get(i);
+                                    break;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        intent = new Intent(main, View_Requests.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("request", 6);
+                        bundle.putString("json", jsonObject.toString());
+                        bundle.putString("name", name);
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 6);
+                    }
+                };
+                DialogInterface.OnClickListener okClick = new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int which){
+
+                    }
+                };
+                Mailbox.setItems(mailbox, listclick);
+                Mailbox.setNeutralButton("Ok", okClick);
+                Mailbox.show();
+                return true;
+            }
         }
 
         return super.onOptionsItemSelected(item);

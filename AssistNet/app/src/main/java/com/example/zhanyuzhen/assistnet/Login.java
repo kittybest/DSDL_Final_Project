@@ -23,6 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class Login extends AppCompatActivity {
 
@@ -40,6 +41,7 @@ public class Login extends AppCompatActivity {
     private JSONObject AccountInfo = new JSONObject();
     Intent intent = new Intent();
     Context context;
+    ArrayList<String> mails = new ArrayList<String>();
 
 
     @Override
@@ -92,6 +94,7 @@ public class Login extends AppCompatActivity {
             case 0://login
                 login_status = data.getExtras().getString("login_status");
                 if(login_status.equals("LogIn_Success")){
+                    mails = (ArrayList<String>) data.getExtras().getSerializable("mails");
                     login(Account);
                 }
                 else if(login_status.equals("LogIn_WrongPassWord")){
@@ -159,99 +162,11 @@ public class Login extends AppCompatActivity {
         intent.setClass(Login.this,MainActivity.class);
         Bundle pass_UserID = new Bundle();
         pass_UserID.putString("UserID",UserID);
+        pass_UserID.putSerializable("mails", mails);
         intent.putExtras(pass_UserID);
         startActivity(intent);
         Login.this.finish();
     }
-    /*private Runnable Register = new Runnable() {
-        @Override
-        public void run() {
-            //connect to Server
-            /*System.out.println("in runnable, AccountInfo JSON: " + AccountInfo);
-            socket = new Socket();
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
-            try{
-                socket.connect(inetSocketAddress, 20000);
-                System.out.println("Socket success!");
-            } catch(IOException e){
-                System.out.println("Socket Fault! from client");
-                System.out.println("IOException: " + e.toString());
-            }
-            //initialize input and output stream
-            try {
-                inputStream = new DataInputStream(socket.getInputStream());
-                outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                System.out.println("client I/O Fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-            try {
-                outputStream.writeUTF("Register");
-                str_AccountInfo = AccountInfo.toString();
-                System.out.println("Before send, AccountInfo String: " + str_AccountInfo);
-                outputStream.writeUTF(str_AccountInfo);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                reg_status = inputStream.readUTF();
-                System.out.println("reg_status: " + reg_status);
-            } catch (IOException e) {
-                e.printStackTrace();
-                reg_status = new String();
-                reg_status = "Register_Fail";
-            }
-           /* try {
-                socket.close();
-                inputStream.close();
-                outputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            System.out.println("end of run");
-        }
-    };*/
-    /*private Runnable Login = new Runnable() {
-        @Override
-        public void run() {
 
-            //connect to Server
-            socket = new Socket();
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(address, ClientPort);
-            try{
-                socket.connect(inetSocketAddress, 20000);
-                System.out.println("Socket success!");
-            } catch(IOException e){
-                System.out.println("Socket Fault! from client");
-                System.out.println("IOException: " + e.toString());
-            }
-            //initialize input and output stream
-            try {
-                inputStream = new DataInputStream(socket.getInputStream());
-                outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                System.out.println("client I/O Fault!");
-                System.out.println("IOException: " + e.toString());
-            }
-            //request data list
-            try {
-                outputStream.writeUTF("LogIn");
-                outputStream.writeUTF(Account);
-                outputStream.writeUTF(Password);
-                input = inputStream.readUTF();
-                if(input.equals("LogIn_Success")){
-                    login(Account);
-                }
-                else if(input.equals("LogIn_WrongPassword")){
-                    Toast.makeText(getApplicationContext(),"密碼錯誤",Toast.LENGTH_SHORT);
-                }
-                else if(input.equals("Login_NoAccount")){
-                    Toast.makeText(getApplicationContext(),"無此帳號",Toast.LENGTH_SHORT);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    };*/
 
 }
